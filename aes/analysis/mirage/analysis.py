@@ -40,26 +40,28 @@ def list_files_in_subdirectories(path):
 
 
 ######## Develop tuples ###########################
-def develop_tuples(round_timing_tuples, filename, key_position): 
+def develop_tuples(round_timing_tuples, filename, key_position, traces_used): 
     #print("Processing ", filename)
     sys.stdout.flush()
     datalines = open(filename).readlines()
-    index = 0
+    # index = 0
     for data in datalines:
-        if(index > max_traces):
+        if(traces_used > max_traces):
             continue
-        index = index + 1
+        traces_used = traces_used + 1
         if(data is not None and data.find("Attacker") >= 0):
             data = data.strip().split() 
             time = int(data[3][:-1])
             ciphertext = [int(h, 16) for h in data[6:22]]
             round_timing_tuples.append([ciphertext[key_position], time])
+    return traces_used
 
 round_timing_tuples = []
 
 all_files = list_files_in_subdirectories("./key1/")
+traces_used = 0
 for filename in all_files:
-    develop_tuples(round_timing_tuples, filename, position)
+    traces_used = develop_tuples(round_timing_tuples, filename, position, traces_used)
 
 ############ Develop True Profile #########################
 
@@ -81,9 +83,10 @@ for key in true_profile_list.keys():
 
 ########### Develop guess profiles and perform correlation #############
 round_timing_tuples = []
+traces_used = 0
 all_files = list_files_in_subdirectories("./key2/")
 for filename in all_files:
-    develop_tuples(round_timing_tuples, filename, position)
+    traces_used = develop_tuples(round_timing_tuples, filename, position, traces_used)
 
 corr = {}
 significant = 0
